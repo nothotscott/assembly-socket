@@ -19,15 +19,15 @@
 
 #define BUFFER_SIZE	1024
 
-extern int listen_fd, connection_fd;
-extern struct sockaddr_in server_address;
-extern char* send_buffer_ptr;
+int listen_fd, connection_fd;
+struct sockaddr_in server_address;
+char* send_buffer_ptr;
 
 int main_prototype()
 {
     time_t ticks;
     int ret;
-	/*send_buffer_ptr = calloc(BUFFER_SIZE, 1);
+	send_buffer_ptr = calloc(BUFFER_SIZE, 1);
 	memset(&server_address, 0, sizeof(struct sockaddr_in));
 
 	// Create a socket
@@ -35,7 +35,7 @@ int main_prototype()
 	// Configure server(this) address
 	server_address.sin_family = AF_INET;
 	server_address.sin_port = htons(PORT);
-	server_address.sin_addr.s_addr = INADDR_ANY;	// will bind socket to all local interfaces*/
+	server_address.sin_addr.s_addr = INADDR_ANY;	// will bind socket to all local interfaces
 	// Bind the socket to the address
 	ret = bind(listen_fd, (struct sockaddr*)&server_address, sizeof(struct sockaddr_in));
 	//printf("listen_fd=%d", listen_fd);
@@ -44,7 +44,6 @@ int main_prototype()
 		exit(ret);
 	}
 	printf("Binding done...\n");
-	return 0;
 	// Listen for requests
 	listen(listen_fd, 10);
 	printf("Listening\n");
@@ -55,8 +54,8 @@ int main_prototype()
 		printf("Client connected\n");
 		// Send back some cool stuff
 		ticks = time(NULL);
-		snprintf(send_buffer_ptr, BUFFER_SIZE, "%.24s\r\n", ctime(&ticks));
-		write(connection_fd, send_buffer_ptr, strlen(send_buffer_ptr));
+		int len = snprintf(send_buffer_ptr, BUFFER_SIZE, "%.24s\r\n", ctime(&ticks));
+		write(connection_fd, send_buffer_ptr, len);
 		// Close the connection
 		close(connection_fd);
 		sleep(1);

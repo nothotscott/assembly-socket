@@ -8,13 +8,11 @@
 ; Data ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 SECTION	.rodata
 error1:		db "Error binding",0
-message:	db "Test",0
+message1:	db "Listening",0
+message2:	db "Client connected",0
+format1:	db "%.24s\r\n",0
 
 SECTION	.data
-GLOBAL	listen_fd
-GLOBAL	connection_fd
-GLOBAL	send_buffer_ptr
-GLOBAL	server_address
 listen_fd:			dd 0
 connection_fd:		dd 0
 send_buffer_ptr:	dq 0
@@ -58,20 +56,53 @@ main:
 	cmp		eax, 0
 	jge		.bind_continue
 	.bind_error:
-		push	rax
+		push	ax														; exit with error
 		mov		rdi, error1
 		call	puts
 		jmp		.exit
 	.bind_continue:
-
-	mov		rdi, message
+	; Listen for requests
+	mov		edi, DWORD [listen_fd]										; listen(listen_fd, 10);
+	mov		rsi, MAX_CONNECTIONS
+	call	listen
+	mov		rdi, message1
 	call	puts
 
-	push	QWORD 0														; default exit code
+	.connect_loop:
+		mov		edi, DWORD [listen_fd]									; accept(listen_fd, (struct sockaddr*)NULL, NULL);
+		mov		rsi, 0
+		mov		rdx, 0
+		call	accept
+		mov		DWORD [connection_fd], eax
+		mov		rdi, message2
+		call	puts
+		; Send some cool stuff back
+		mov		rdi, 0													; ticks = time(NULL);
+		call	time
+		mov		QWORD [rsp - 16], rax									; local variable ticks
+		lea		rdi, [rsp - 16]											; snprintf(send_buffer, BUFFER_SIZE, "%.24s\r\n", ctime(&ticks));
+		call	ctime
+		mov		rdi, QWORD [send_buffer_ptr]
+		mov		rsi, BUFFER_SIZE
+		mov		rdx, format1
+		mov		rcx, rax
+		call	snprintf
+		mov		edi, DWORD [connection_fd]								; write(connection_fd, send_buffer_ptr, strlen(send_buffer_ptr));
+		mov		rsi, QWORD [send_buffer_ptr]
+		movsx	rdx, eax												; size given by snprintf
+		call	write
+		; Close the connection and repeat
+		mov		edi, DWORD [connection_fd]
+		call	close
+		mov		rdi, 1
+		call	sleep
+		jmp		.connect_loop
+
+	push	BYTE 0														; default exit code
 	.exit:
 		mov		rdi, QWORD [send_buffer_ptr]
 		call	free
-		pop		rdi
+		pop		di														; claim error from stack
 		add		rsp, 16
 		pop		rbp
 		mov		rax, 60
