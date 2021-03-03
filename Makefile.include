@@ -1,0 +1,14 @@
+### Configurable ###
+SERVER	:= server
+CLIENT	:= client
+
+### Directories ###
+SRC_DIR		:= src
+BIN_DIR		:= bin
+SERVER_DIR	:= $(BIN_DIR)/$(SERVER)
+CLIENT_DIR	:= $(BIN_DIR)/$(CLIENT)
+
+### Toolchain ###
+CC		:= gcc
+AS		:= nasm
+LINKER	:= g++
