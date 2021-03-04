@@ -2,15 +2,15 @@
 ;; Copyright(c) 2021 Scott Maday ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-%include	"server.inc"
 %include	"common.inc"
+%include	"server.inc"
 
 ; Data ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 SECTION	.rodata
 error1:		db "Error binding",0
 message1:	db "Listening",0
 message2:	db "Client connected",0
-format1:	db "%.24s\r\n",0
+format1:	db "%.24s",13,10,0
 
 SECTION	.data
 listen_fd:			dd 0
@@ -21,14 +21,13 @@ server_address:		times	_sockaddr_in_size db 0
 ; Code ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 SECTION	.text
 
-EXTERN	main_prototype
 GLOBAL	main
 main:
 	push	rbp
 	mov		rbp, rsp
 	sub		rsp, 16
 	; Initialize variables
-	mov		rdi, BUFFER_SIZE											; send_buffer = calloc(BUFFER_SIZE, 1)
+	mov		rdi, BUFFER_SIZE											; send_buffer_ptr = calloc(BUFFER_SIZE, 1)
 	mov		rsi, 1
 	call	calloc
 	mov		QWORD [send_buffer_ptr], rax
@@ -79,8 +78,8 @@ main:
 		; Send some cool stuff back
 		mov		rdi, 0													; ticks = time(NULL);
 		call	time
-		mov		QWORD [rsp - 16], rax									; local variable ticks
-		lea		rdi, [rsp - 16]											; snprintf(send_buffer, BUFFER_SIZE, "%.24s\r\n", ctime(&ticks));
+		mov		QWORD [rbp - 16], rax									; local variable ticks
+		lea		rdi, [rbp - 16]											; snprintf(send_buffer, BUFFER_SIZE, "%.24s\r\n", ctime(&ticks));
 		call	ctime
 		mov		rdi, QWORD [send_buffer_ptr]
 		mov		rsi, BUFFER_SIZE

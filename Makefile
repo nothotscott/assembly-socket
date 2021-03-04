@@ -35,7 +35,7 @@ run-client:
 
 
 ### Server Target ###
-SERVER_SOURCES	:= $(wildcard $(SRC_DIR)/$(SERVER)/*.c $(SRC_DIR)/$(SERVER)/*.asm)
+SERVER_SOURCES	:= $(wildcard $(SRC_DIR)/$(SERVER)/*.asm)
 SERVER_TARGETS	:= $(addprefix $(SERVER_DIR)/, $(addsuffix .o, $(subst .,_, $(notdir $(SERVER_SOURCES)))))
 
 .PHONY:	$(SERVER)
@@ -43,7 +43,7 @@ $(SERVER):	$(SERVER_TARGETS)
 			$(LINKER) $(LINK_FLAGS) $(SERVER_TARGETS) -o $(SERVER_DIR)/$@.elf
 
 ### Client Target ###
-CLIENT_SOURCES	:= $(wildcard $(SRC_DIR)/$(CLIENT)/*.c $(SRC_DIR)/$(CLIENT)/*.asm)
+CLIENT_SOURCES	:= $(wildcard $(SRC_DIR)/$(CLIENT)/*.asm)
 CLIENT_TARGETS	:= $(addprefix $(CLIENT_DIR)/, $(addsuffix .o, $(subst .,_, $(notdir $(CLIENT_SOURCES)))))
 
 .PHONY:	$(CLIENT)

@@ -16,13 +16,16 @@
 
 #define BUFFER_SIZE	1024
 
-int main(int argc, char *argv[]){
-	int socketfd = 0, n = 0;
-	struct sockaddr_in server_address;
-	char* receive_buffer = calloc(BUFFER_SIZE, 1);
+int socket_fd = 0;
+struct sockaddr_in server_address;
+char* receive_buffer_ptr;
+
+int main_prototype(){
+	int n = 0;
+	receive_buffer_ptr = calloc(BUFFER_SIZE, 1);
 
 	// Create socket
-	if((socketfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+	if((socket_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
 		printf("\n Error : Could not create socket \n");
 		return 1;
 	}
@@ -37,15 +40,15 @@ int main(int argc, char *argv[]){
 	}
 
 	// Connect to the socket
-	if(connect(socketfd, (struct sockaddr*)&server_address, sizeof(server_address)) < 0)
+	if(connect(socket_fd, (struct sockaddr*)&server_address, sizeof(server_address)) < 0)
 	{
 		printf("\n Error : Connect Failed \n");
 		return 1;
 	}
 	// Read the receive buffer
-	while ((n = read(socketfd, receive_buffer, BUFFER_SIZE - 1)) > 0) {
-		receive_buffer[n] = 0;
-		if(fputs(receive_buffer, stdout) == EOF) {
+	while ((n = read(socket_fd, receive_buffer_ptr, BUFFER_SIZE - 1)) > 0) {
+		receive_buffer_ptr[n] = 0;
+		if(fputs(receive_buffer_ptr, stdout) == EOF) {
 			printf("\n Error : Fputs error\n");
 		}
 	}
@@ -53,6 +56,6 @@ int main(int argc, char *argv[]){
 		printf("\n Read error \n");
 	}
 
-	free(receive_buffer);
+	free(receive_buffer_ptr);
 	return 0;
 }
