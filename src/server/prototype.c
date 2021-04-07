@@ -1,3 +1,7 @@
+/***
+ * Note: This is not compiled at all. This simply demonstrates the assembly code
+ */
+
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,21 +19,43 @@
 #include <sys/ioctl.h>
 #include <net/if.h>
 
-#define PORT	9002
+#include <pthread.h>
 
-#define BUFFER_SIZE	1024
+#define PORT	5000
+
+#define BUFFER_SIZE	1000
 
 int listen_fd, connection_fd;
 struct sockaddr_in server_address;
+char* stdin_buffer_ptr;
 char* send_buffer_ptr;
+char* receive_buffer_ptr;
 
-int main_prototype()
+void* handle_input(void* fd) {
+	while(1){
+		if(fgets(stdin_buffer_ptr, BUFFER_SIZE, stdin)) {
+			time_t ticks = time(NULL);
+			snprintf(send_buffer_ptr, BUFFER_SIZE, "%.24s: ", ctime(&ticks));
+			strcat(send_buffer_ptr, stdin_buffer_ptr);
+			if(*(int*)fd){
+				write(*(int*)fd, send_buffer_ptr, BUFFER_SIZE);
+			}
+		}
+	}
+	return 0;
+}
+
+int main()
 {
-    time_t ticks;
+	int n = 0;
     int ret;
+	stdin_buffer_ptr = calloc(BUFFER_SIZE, 1);
 	send_buffer_ptr = calloc(BUFFER_SIZE, 1);
+	receive_buffer_ptr = calloc(BUFFER_SIZE, 1);
 	memset(&server_address, 0, sizeof(struct sockaddr_in));
-
+	pthread_t thread_id0;
+	// Handle user input
+	pthread_detach(pthread_create(&thread_id0, NULL, handle_input, &connection_fd));
 	// Create a socket
 	listen_fd = socket(AF_INET, SOCK_STREAM, 0);
 	// Configure server(this) address
@@ -48,19 +74,25 @@ int main_prototype()
 	listen(listen_fd, 10);
 	printf("Listening\n");
 	while(1) {
+		struct sockaddr_in connection_addr;
 		connection_fd = accept(listen_fd, (struct sockaddr*)NULL, NULL);
-		//struct sockaddr_in* pV4Addr = (struct sockaddr_in*)&client_addr;
-		//struct in_addr ipAddr = pV4Addr->sin_addr;
-		printf("Client connected\n");
-		// Send back some cool stuff
-		ticks = time(NULL);
-		int len = snprintf(send_buffer_ptr, BUFFER_SIZE, "%.24s\r\n", ctime(&ticks));
-		write(connection_fd, send_buffer_ptr, len);
+		socklen_t connection_addr_len = sizeof(struct sockaddr_in);
+		getpeername(connection_fd, (struct sockaddr*)&connection_addr, &connection_addr_len);
+		printf("Client %s connected\n", inet_ntoa(connection_addr.sin_addr));
+		while(1){
+			while ((n = read(connection_fd, receive_buffer_ptr, BUFFER_SIZE - 1)) > 0) {
+				receive_buffer_ptr[n] = 0;
+				if(fputs(receive_buffer_ptr, stdout) == EOF) {
+					printf("\n Error : Fputs error\n");
+				}
+			}
+		}
 		// Close the connection
 		close(connection_fd);
-		sleep(1);
 	}
 
+	free(stdin_buffer_ptr);
 	free(send_buffer_ptr);
+	free(receive_buffer_ptr);
 	return 0;
 }

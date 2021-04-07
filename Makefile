@@ -3,7 +3,7 @@ include Makefile.include
 CFLAGS		:= -Wall
 ASFLAGS		:= -f elf64 -i $(SRC_DIR)
 ASFLAGS		+= -F dwarf -g
-LINK_FLAGS	:= -no-pie
+LINK_FLAGS	:= -no-pie -pthread
 
 ### Main ###
 .PHONY:	all
@@ -36,6 +36,7 @@ run-client:
 
 ### Server Target ###
 SERVER_SOURCES	:= $(wildcard $(SRC_DIR)/$(SERVER)/*.asm)
+# SERVER_SOURCES	:= $(wildcard $(SRC_DIR)/$(SERVER)/*.c)
 SERVER_TARGETS	:= $(addprefix $(SERVER_DIR)/, $(addsuffix .o, $(subst .,_, $(notdir $(SERVER_SOURCES)))))
 
 .PHONY:	$(SERVER)
@@ -44,6 +45,7 @@ $(SERVER):	$(SERVER_TARGETS)
 
 ### Client Target ###
 CLIENT_SOURCES	:= $(wildcard $(SRC_DIR)/$(CLIENT)/*.asm)
+# CLIENT_SOURCES	:= $(wildcard $(SRC_DIR)/$(CLIENT)/*.c)
 CLIENT_TARGETS	:= $(addprefix $(CLIENT_DIR)/, $(addsuffix .o, $(subst .,_, $(notdir $(CLIENT_SOURCES)))))
 
 .PHONY:	$(CLIENT)
